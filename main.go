@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gocolly/colly/v2"
+	_ "github.com/mattn/go-sqlite3"
 	"net/http"
 	"strconv"
 	"strings"
 )
 
-type board struct {
+type Board struct {
+	Id          int64
 	PostId      int64
 	Title       string
 	Price       float64
@@ -19,12 +21,32 @@ type board struct {
 	Length      float64
 	Description string
 	Link        string
+	Deleted     bool
 }
 
 func main() {
+	println("Starting")
+	db, err := CreateBoardsDB()
+	if err != nil {
+		println(err.Error())
+		return
+	}
+
+	defer func(db *BoardsDB) {
+		err := db.Close()
+		if err != nil {
+			println(err.Error())
+		}
+	}(db)
+
+	err = db.SetDeletedAll()
+	if err != nil {
+		println(err.Error())
+		return
+	}
+
 	// Instantiate default collector
 	c := colly.NewCollector(
-		// Visit only domains: hackerspaces.org, wiki.hackerspaces.org
 		colly.AllowedDomains("www.slosurf.com"),
 	)
 
@@ -32,11 +54,10 @@ func main() {
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	})
 
-	// On every an element which has href attribute call callback
 	c.OnHTML("body", func(e *colly.HTMLElement) {
 
 		e.ForEach("article", func(i int, article *colly.HTMLElement) {
-			var board board
+			var board Board
 
 			postId, err := strconv.ParseInt(article.Attr("data-id"), 10, 64)
 			if err == nil {
@@ -53,6 +74,7 @@ func main() {
 			board.Link = article.ChildAttr("h2.h4.entry-title a", "href")
 
 			priceString := strings.ReplaceAll(article.ChildText("div.price-wrap span.tag-head span.post-price"), "€", "")
+			priceString = strings.ReplaceAll(priceString, ".", "")
 			priceString = strings.ReplaceAll(priceString, ",", ".")
 			price, err := strconv.ParseFloat(priceString, 64)
 			if err == nil {
@@ -85,6 +107,19 @@ func main() {
 			board.Description = article.ChildText("div.entry-content.subheader")
 
 			fmt.Printf("%+v\n", board)
+
+			b, err := db.GetByPostId(board.PostId)
+			if b != nil {
+				err = db.Update(board)
+				if err != nil {
+					println(err.Error())
+				}
+			} else {
+				_, err = db.Insert(board)
+				if err != nil {
+					println(err.Error())
+				}
+			}
 		})
 
 		c.Visit(e.ChildAttr("a.next.page-numbers", "href"))
@@ -95,7 +130,7 @@ func main() {
 		fmt.Println("Visiting", r.URL.String())
 	})
 
-	err := c.Visit("https://www.slosurf.com/ad-category/surf/deske-2/")
+	err = c.Visit("https://www.slosurf.com/ad-category/surf/deske-2/")
 	if err != nil {
 		fmt.Println(err)
 		return
