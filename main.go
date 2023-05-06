@@ -11,19 +11,6 @@ import (
 	"strings"
 )
 
-type Board struct {
-	Id          int64
-	PostId      int64
-	Title       string
-	Price       float64
-	Liters      float64
-	Weight      float64
-	Length      float64
-	Description string
-	Link        string
-	Deleted     bool
-}
-
 func main() {
 	println("Starting")
 	db, err := CreateBoardsDB()
@@ -57,28 +44,28 @@ func main() {
 	c.OnHTML("body", func(e *colly.HTMLElement) {
 
 		e.ForEach("article", func(i int, article *colly.HTMLElement) {
-			var board Board
+			var newBoard Board
 
 			postId, err := strconv.ParseInt(article.Attr("data-id"), 10, 64)
 			if err == nil {
-				board.PostId = postId
+				newBoard.PostId = postId
 			} else {
 				return
 			}
 
-			board.Title = article.ChildAttr("h2.h4.entry-title a", "title")
-			if board.Title == "" || strings.Contains(strings.ToLower(board.Title), "kupim") {
+			newBoard.Title = article.ChildAttr("h2.h4.entry-title a", "title")
+			if newBoard.Title == "" || strings.Contains(strings.ToLower(newBoard.Title), "kupim") {
 				return
 			}
 
-			board.Link = article.ChildAttr("h2.h4.entry-title a", "href")
+			newBoard.Link = article.ChildAttr("h2.h4.entry-title a", "href")
 
 			priceString := strings.ReplaceAll(article.ChildText("div.price-wrap span.tag-head span.post-price"), "€", "")
 			priceString = strings.ReplaceAll(priceString, ".", "")
 			priceString = strings.ReplaceAll(priceString, ",", ".")
 			price, err := strconv.ParseFloat(priceString, 64)
 			if err == nil {
-				board.Price = price
+				newBoard.Price = price
 			}
 
 			selection := article.DOM.Find("div.entry-content.subheader span")
@@ -87,35 +74,35 @@ func main() {
 					selection = selection.Next()
 					liters, err := strconv.ParseFloat(selection.Nodes[0].FirstChild.Data, 64)
 					if err == nil {
-						board.Liters = liters
+						newBoard.Liters = liters
 					}
 				} else if selection.HasClass("cfd_size") {
 					selection = selection.Next()
 					length, err := strconv.ParseFloat(selection.Nodes[0].FirstChild.Data, 64)
 					if err == nil {
-						board.Length = length
+						newBoard.Length = length
 					}
 				} else if selection.HasClass("cfd_weight") {
 					selection = selection.Next()
 					weight, err := strconv.ParseFloat(selection.Nodes[0].FirstChild.Data, 64)
 					if err == nil {
-						board.Weight = weight
+						newBoard.Weight = weight
 					}
 				}
 			})
 
-			board.Description = article.ChildText("div.entry-content.subheader")
+			newBoard.Description = article.ChildText("div.entry-content.subheader")
 
-			fmt.Printf("%+v\n", board)
-
-			b, err := db.GetByPostId(board.PostId)
-			if b != nil {
-				err = db.Update(board)
+			existingBoard, err := db.GetByPostId(newBoard.PostId)
+			if existingBoard != nil {
+				fmt.Printf("Update: %+v\n", newBoard)
+				err = db.Update(newBoard)
 				if err != nil {
 					println(err.Error())
 				}
 			} else {
-				_, err = db.Insert(board)
+				fmt.Printf("Insert: %+v\n", newBoard)
+				_, err = db.Insert(newBoard)
 				if err != nil {
 					println(err.Error())
 				}

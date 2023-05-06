@@ -5,6 +5,19 @@ import (
 	"sync"
 )
 
+type Board struct {
+	Id          int64
+	PostId      int64
+	Title       string
+	Price       float64
+	Liters      float64
+	Weight      float64
+	Length      float64
+	Description string
+	Link        string
+	Deleted     bool
+}
+
 type BoardsDB struct {
 	mu sync.Mutex
 	db *sql.DB
