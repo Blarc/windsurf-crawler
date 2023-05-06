@@ -18,6 +18,10 @@ jobs:
 
       - name: Run
         run: ./main
+        env:
+          MESSENGER_URL: ${{ secrets.MESSENGER_URL }}
+          MESSENGER_ACCESS_TOKEN: ${{ secrets.MESSENGER_ACCESS_TOKEN }}
+          MESSENGER_USER_ID: ${{ secrets.MESSENGER_USER_ID }}
 
 
       - name: Add & Commit
