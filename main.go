@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gocolly/colly/v2"
-	_ "github.com/mattn/go-sqlite3"
 	"io"
 	"log"
 	"net/http"
@@ -155,6 +154,10 @@ func main() {
 			newBoard.Description = article.ChildText("div.entry-content.subheader")
 
 			existingBoard, err := db.GetByPostId(newBoard.PostId)
+			if err != nil {
+				log.Println(err.Error())
+			}
+
 			if existingBoard != nil {
 				//log.Printf("Update: %+v\n", newBoard)
 				err = db.Update(newBoard)
