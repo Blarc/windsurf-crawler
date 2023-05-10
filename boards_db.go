@@ -20,6 +20,7 @@ type Board struct {
 	Description string
 	Link        string
 	Deleted     bool
+	Timestamp   int64
 }
 
 type BoardsDB struct {
@@ -45,7 +46,7 @@ func CreateBoardsDB() (*BoardsDB, error) {
 
 	// Create boards table
 	log.Println("Creating boards table")
-	_, err = db.Exec("CREATE TABLE IF NOT EXISTS boards (id SERIAL PRIMARY KEY, post_id INTEGER, title TEXT, price REAL, liters REAL, weight REAL, length REAL, description TEXT, link TEXT, deleted BOOLEAN DEFAULT FALSE)")
+	_, err = db.Exec("CREATE TABLE IF NOT EXISTS boards (id SERIAL PRIMARY KEY, post_id INTEGER, title TEXT, price REAL, liters REAL, weight REAL, length REAL, description TEXT, link TEXT, deleted BOOLEAN DEFAULT FALSE, timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +66,7 @@ func (db *BoardsDB) GetByPostId(postId int64) (*Board, error) {
 
 	board := Board{}
 	var err error
-	if err = row.Scan(&board.Id, &board.PostId, &board.Title, &board.Price, &board.Liters, &board.Weight, &board.Length, &board.Description, &board.Link, &board.Deleted); err != nil {
+	if err = row.Scan(&board.Id, &board.PostId, &board.Title, &board.Price, &board.Liters, &board.Weight, &board.Length, &board.Description, &board.Link, &board.Deleted, &board.Timestamp); err != nil {
 		return nil, err
 	}
 	return &board, err
