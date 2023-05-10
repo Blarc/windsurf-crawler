@@ -166,7 +166,11 @@ func main() {
 				}
 			} else {
 				log.Printf("Insert: %+v\n", newBoard)
-				sendMessageToMessenger(fmt.Sprintf("New board: %s\n%s", newBoard.Title, newBoard.Link))
+				if newBoard.Price != 0 {
+					sendMessageToMessenger(fmt.Sprintf("New board: %s (%f €)\n%s", newBoard.Title, newBoard.Price, newBoard.Link))
+				} else {
+					sendMessageToMessenger(fmt.Sprintf("New board: %s\n%s", newBoard.Title, newBoard.Link))
+				}
 				_, err = db.Insert(newBoard)
 				if err != nil {
 					log.Println(err.Error())
