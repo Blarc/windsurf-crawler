@@ -75,20 +75,20 @@ func sendMessageToMessenger(message string) {
 func main() {
 	db, err := CreateBoardsDB()
 	if err != nil {
-		log.Println(err.Error())
+		log.Fatalln(err.Error())
 		return
 	}
 
 	defer func(db *BoardsDB) {
 		err := db.Close()
 		if err != nil {
-			log.Println(err.Error())
+			log.Fatalln(err.Error())
 		}
 	}(db)
 
 	err = db.SetDeletedAll()
 	if err != nil {
-		log.Println(err.Error())
+		log.Fatalln(err.Error())
 		return
 	}
 
@@ -162,7 +162,7 @@ func main() {
 				//log.Printf("Update: %+v\n", newBoard)
 				err = db.Update(newBoard)
 				if err != nil {
-					log.Println(err.Error())
+					log.Fatalln(err.Error())
 				}
 			} else {
 				log.Printf("Insert: %+v\n", newBoard)
@@ -173,7 +173,7 @@ func main() {
 				}
 				_, err = db.Insert(newBoard)
 				if err != nil {
-					log.Println(err.Error())
+					log.Fatalln(err.Error())
 				}
 			}
 		})
@@ -188,7 +188,7 @@ func main() {
 
 	err = c.Visit("https://www.slosurf.com/ad-category/surf/deske-2/")
 	if err != nil {
-		log.Println(err)
+		log.Fatalln(err)
 		return
 	}
 
