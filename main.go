@@ -167,7 +167,7 @@ func main() {
 			} else {
 				log.Printf("Insert: %+v\n", newBoard)
 				if newBoard.Price != 0 {
-					sendMessageToMessenger(fmt.Sprintf("New board: %s (%f €)\n%s", newBoard.Title, newBoard.Price, newBoard.Link))
+					sendMessageToMessenger(fmt.Sprintf("New board: %s (%.2f €)\n%s", newBoard.Title, newBoard.Price, newBoard.Link))
 				} else {
 					sendMessageToMessenger(fmt.Sprintf("New board: %s\n%s", newBoard.Title, newBoard.Link))
 				}
