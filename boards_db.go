@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"sync"
+	"time"
 )
 
 type Board struct {
@@ -20,7 +21,7 @@ type Board struct {
 	Description string
 	Link        string
 	Deleted     bool
-	Timestamp   int64
+	Timestamp   time.Time
 }
 
 type BoardsDB struct {
